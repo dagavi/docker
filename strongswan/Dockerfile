@@ -16,7 +16,7 @@ RUN apk update \
     && apk add --no-cache iptables gmp \
     && rm -rf /var/cache/apk/*
 
-COPY charon-logging.conf /etc/strongswan.d/charon-logging.conf
+COPY run.sh copy_root /
 
 EXPOSE 500/udp 4500/udp
 
