@@ -1,39 +1,88 @@
 #!/bin/sh
 
-function systemConfiguration {
-    VPN_NETWORK="10.0.0.0/8"
+enableNetwork() {
+    VPN_NETWORK="${1}"
     INTERFACE="$(ip route | grep default | cut -d' ' -f5)"
 
-    sysctl net.ipv4.ip_forward=1
-    sysctl net.ipv4.conf.all.accept_redirects=0
-    sysctl net.ipv4.conf.all.send_redirects=0
+    echo "Configure iptables NAT MASQUERADE for ${VPN_NETWORK} on ${INTERFACE}"
 
-    iptables -F
 
     # Only forwrd packets from / to our VPN
-    iptables -P FORWARD DROP
-    iptables -A FORWARD -s ${VPN_NETWORK} -o "${INTERFACE}" -j ACCEPT
-    iptables -A FORWARD -d ${VPN_NETWORK} -i "${INTERFACE}" -j ACCEPT
+    iptables -A FORWARD -s "${VPN_NETWORK}" -o "${INTERFACE}" -j ACCEPT || return $?
+    iptables -A FORWARD -d "${VPN_NETWORK}" -i "${INTERFACE}" -j ACCEPT
 
-    # Reglas extraidas de: https://wiki.strongswan.org/projects/strongswan/wiki/ForwardingAndSplitTunneling
-    iptables -t nat -A POSTROUTING -s ${VPN_NETWORK} -o "${INTERFACE}" -m policy --dir out --pol ipsec -j ACCEPT
-    iptables -t nat -A POSTROUTING -s ${VPN_NETWORK} -o "${INTERFACE}" -j MASQUERADE
-    iptables -t nat -I POSTROUTING -m policy --pol ipsec --dir out -j ACCEPT
-
-    iptables --list
-    iptables -t nat --list
+    # Rules from: https://wiki.strongswan.org/projects/strongswan/wiki/ForwardingAndSplitTunneling
+    iptables -t nat -A POSTROUTING -s "${VPN_NETWORK}" -o "${INTERFACE}" -m policy --dir out --pol ipsec -j ACCEPT
+    iptables -t nat -A POSTROUTING -s "${VPN_NETWORK}" -o "${INTERFACE}" -j MASQUERADE
 }
 
-function delayedExecution {
-    sleep 2
-    swanctl --load-all
-    swanctl --list-conns
+systemConfiguration() {
+    if [ -z "${VPN_POOLS}" ];
+    then
+        echo "WARNING: No pools configured on VPN_POOLS to be openen on iptables"
+    else
+        iptables -F
+        iptables -t nat -F
+        iptables -P FORWARD DROP
+
+        for POOL in ${VPN_POOLS}
+        do
+            enableNetwork "${POOL}" || return $?
+        done
+
+        # Rules from: https://wiki.strongswan.org/projects/strongswan/wiki/ForwardingAndSplitTunneling
+        iptables -t nat -I POSTROUTING -m policy --pol ipsec --dir out -j ACCEPT
+
+        iptables -nL
+        iptables -t nat -nL
+    fi
 }
 
-echo "System configuration"
-systemConfiguration
+delayedExecution() {
+    ITERATIONS=10
+    if [ ! -z "${SWANCTL_CHARON_WAIT_SECONDS}" ];
+    then
+        ITERATIONS="${SWANCTL_CHARON_WAIT_SECONDS}"
+    fi
 
-echo "Executing StrongSwan"
-delayedExecution &
+    if [ "${ITERATIONS}" -gt 0 ];
+    then
+        ITERATION=1
+        while [ "${ITERATION}" -lt "${ITERATIONS}" ] && ! ps | grep "ipsec/charon" | grep -vq grep;
+        do
+            ITERATION=$((ITERATION + 1))
+            sleep 1
+        done
 
-ipsec start --nofork
+        if ps | grep "ipsec/charon" | grep -vq grep;
+        then
+            # Give one second more to ensure that charon.vici listens incoming connections
+            sleep 1
+            echo "Charon working"
+            swanctl --load-all
+            swanctl --list-conns
+        else
+            echo "Error: swanctl not executed because charon was not detected running"
+        fi
+    fi
+}
+
+main() {
+    echo "System configuration"
+    if ! systemConfiguration;
+    then
+        echo "System configuration returned and error."
+        echo "Check the VPN_POOLS variable. Current value: ${VPN_POOLS}"
+        echo "This variable should have one or more pools separated by spaces."
+        echo "Example:"
+        echo "    VPN_POOL=\"10.1.0.0/16 10.2.0.0/16\""
+        exit 1
+    fi
+
+    echo "Executing StrongSwan"
+    delayedExecution &
+
+    ipsec start --nofork
+}
+
+main
