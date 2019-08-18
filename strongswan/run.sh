@@ -21,8 +21,6 @@ systemConfiguration() {
     then
         echo "WARNING: No pools configured on VPN_POOLS to be openen on iptables"
     else
-        iptables -F
-        iptables -t nat -F
         iptables -P FORWARD DROP
 
         for POOL in ${VPN_POOLS}
