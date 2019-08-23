@@ -13,7 +13,7 @@ RUN apk update \
     && cd .. \
     && rm -rf strongswan-5.8.0.tar.bz2 strongswan-5.8.0 \
     && apk del build-dependencies \
-    && apk add --no-cache iptables gmp \
+    && apk add --no-cache iptables gmp xl2tpd \
     && rm -rf /var/cache/apk/*
 
 COPY run.sh copy_root /
