@@ -37,7 +37,7 @@ systemConfiguration() {
 }
 
 delayedExecution() {
-    ITERATIONS=10
+    ITERATIONS=60
     if [ ! -z "${SWANCTL_CHARON_WAIT_SECONDS}" ];
     then
         ITERATIONS="${SWANCTL_CHARON_WAIT_SECONDS}"
@@ -75,6 +75,15 @@ main() {
         echo "Example:"
         echo "    VPN_POOL=\"10.1.0.0/16 10.2.0.0/16\""
         exit 1
+    fi
+
+    if [ -e /dev/ppp ];
+    then
+        echo "Launching xl2tpd"
+        xl2tpd
+    else
+        echo "Don't launch xl2tpd because /dev/ppp doesn't exists"
+        echo "To enable xl2tpd support pass /dev/ppp device to the container"
     fi
 
     echo "Executing StrongSwan"
