@@ -19,7 +19,7 @@ RUN apk update \
     && rm -rf /var/cache/apk/* /usr/bin/qemu-arm-static
 COPY run.sh copy_root /
 
-#FROM scratch
-#COPY --from=build / /
+FROM arm32v7/alpine
+COPY --from=build / /
 EXPOSE 500/udp 4500/udp
 CMD ["/run.sh"]
