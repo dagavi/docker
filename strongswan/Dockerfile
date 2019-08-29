@@ -1,4 +1,4 @@
-FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu
+FROM multiarch/qemu-user-static:x86_64-arm32v7 as qemu
 
 FROM arm32v7/alpine as build
 COPY --from=qemu /usr/bin/qemu-arm-static /usr/bin
@@ -20,6 +20,6 @@ RUN apk update \
 COPY run.sh copy_root /
 
 FROM scratch
-COPY --from build / /
+COPY --from=build / /
 EXPOSE 500/udp 4500/udp
 CMD ["/run.sh"]
