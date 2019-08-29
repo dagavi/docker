@@ -1,5 +1,7 @@
-FROM arm32v7/alpine
+FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu
 
+FROM arm32v7/alpine as build
+COPY --from=qemu /usr/bin/qemu-arm-static /usr/bin
 RUN apk update \
     && apk add --no-cache --virtual build-dependencies \
                build-base \
@@ -15,9 +17,9 @@ RUN apk update \
     && apk del build-dependencies \
     && apk add --no-cache iptables gmp xl2tpd \
     && rm -rf /var/cache/apk/*
-
 COPY run.sh copy_root /
 
+FROM scratch
+COPY --from build / /
 EXPOSE 500/udp 4500/udp
-
 CMD ["/run.sh"]
