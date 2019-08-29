@@ -2,6 +2,7 @@ FROM multiarch/qemu-user-static:x86_64-arm as qemu
 
 FROM arm32v7/alpine as build
 COPY --from=qemu /usr/bin/qemu-arm-static /usr/bin
+RUN find / -type f > /list.pre
 RUN apk update \
     && apk add --no-cache --virtual build-dependencies \
                build-base \
@@ -18,6 +19,7 @@ RUN apk update \
     && apk add --no-cache iptables gmp xl2tpd \
     && rm -rf /var/cache/apk/* /usr/bin/qemu-arm-static
 COPY run.sh copy_root /
+RUN find / -type f > /list.post
 
 FROM arm32v7/alpine
 COPY --from=build / /
