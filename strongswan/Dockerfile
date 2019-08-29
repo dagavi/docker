@@ -1,4 +1,4 @@
-FROM multiarch/qemu-user-static:x86_64-arm32v7 as qemu
+FROM multiarch/qemu-user-static:x86_64-arm as qemu
 
 FROM arm32v7/alpine as build
 COPY --from=qemu /usr/bin/qemu-arm-static /usr/bin
