@@ -16,7 +16,7 @@ RUN apk update \
     && rm -rf strongswan-5.8.0.tar.bz2 strongswan-5.8.0 \
     && apk del build-dependencies \
     && apk add --no-cache iptables gmp xl2tpd \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* /usr/bin/qemu-arm-static
 COPY run.sh copy_root /
 
 FROM scratch
