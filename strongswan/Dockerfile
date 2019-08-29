@@ -1,11 +1,11 @@
-FROM alpine
+FROM arm32v7/alpine
 
 RUN apk update \
     && apk add --no-cache --virtual build-dependencies \
                build-base \
                gmp-dev \
-               linux-headers \
-    && wget https://download.strongswan.org/strongswan-5.8.0.tar.bz2 \
+               linux-headers; \
+    wget https://download.strongswan.org/strongswan-5.8.0.tar.bz2 \
     && tar xf strongswan-5.8.0.tar.bz2 \
     && cd strongswan-5.8.0 \
     && ./configure --prefix=/usr --sysconfdir=/etc \
