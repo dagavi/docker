@@ -10,6 +10,10 @@ iptables is called on startup (`/run.sh`) and configures the NAT table to aply M
 
 `VPN_POOLS` should contain a list of IP pools, separated by comma.  For example: `10.0.0.0/16 10.1.0.0/16`
 
+# Usage
+
+You should map your configuration as "/server.ovpn".
+
 # Links
  - [OpenVPN](https://openvpn.net/)
 
