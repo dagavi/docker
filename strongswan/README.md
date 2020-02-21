@@ -1,7 +1,7 @@
 # StrongSwan
 ![enter image description here](https://i.imgur.com/p83gWIt.png)
 
-Simple image containing a self-builded StrongSwan 5.8.0 with images for Linux 86_64 and ARM (for Raspberry Pi 2, for example) and  XL2TPd (to enable the possibility of making L2TP/IPSec tunnels).
+Simple image containing a self-builded StrongSwan 5.8.2 with images for Linux 86_64 and ARM (for Raspberry Pi 2, for example) and  XL2TPd (to enable the possibility of making L2TP/IPSec tunnels).
 
 If you map the device `/dev/ppp` the container will run **xl2tpd** on start.
 
