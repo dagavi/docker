@@ -1,5 +1,7 @@
 FROM alpine
 
+ARG VERSION=2.4.9
+
 RUN apk update \
     && apk add --no-cache --virtual build-dependencies \
                build-base \
@@ -8,14 +10,14 @@ RUN apk update \
                lz4-dev \
                lzo-dev \
                linux-pam-dev \
-    && wget https://swupdate.openvpn.org/community/releases/openvpn-2.4.7.tar.gz \
-    && tar xf openvpn-2.4.7.tar.gz \
-    && cd openvpn-2.4.7 \
+    && wget https://swupdate.openvpn.org/community/releases/openvpn-${VERSION}.tar.gz \
+    && tar xf openvpn-${VERSION}.tar.gz \
+    && cd openvpn-${VERSION} \
     && ./configure --prefix=/usr --sysconfdir=/etc --enable-x509-alt-username \
     && make && make install \
     && cp -r sample/sample-config-files /usr/share/doc/openvpn/ \
     && cd .. \
-    && rm -rf openvpn-2.4.7.tar.gz openvpn-2.4.7 \
+    && rm -rf openvpn-${VERSION}.tar.gz openvpn-${VERSION} \
     && apk del build-dependencies \
     && apk add lzo lz4-libs iptables \
     && rm -rf /var/cache/apk/*
